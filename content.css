@@ -1,0 +1,205 @@
+/*
+ * PurplePurify 纯净信息流 —— 选择器原样移植自 PurpleBook preload.js 的 PURE_CSS。
+ *
+ * 门控策略：规则默认生效（manifest 在 document_start 注入，默认开启的用户零闪烁）。
+ *   - 总开关：content.js 读到 pureMode=false 时给 <html> 设 data-pp-pure="off"，
+ *     原有信息流规则随之失效；新增搜索/页面精简使用各自独立门控；
+ *   - 分组件：每个组件有独立豁免属性（data-pp-header="off" 等，true = 隐藏，
+ *     off = 显示）。默认（属性尚未写入时）全部隐藏，与默认净化行为一致。
+ *
+ * 小红书改版后只需更新本文件的选择器：排查工具见 debug/probe.js（F12 控制台粘贴运行）。
+ */
+
+/* ===== 顶部导航栏（logo、搜索框、登录/发布按钮） ===== */
+html:not([data-pp-pure='off']):not([data-pp-header='off']):not([data-pp-search]) .header-container {
+  display: none !important;
+}
+
+/* ===== 左侧边栏（频道导航、登录入口、备案信息） ===== */
+html:not([data-pp-pure='off']):not([data-pp-sidebar='off']) .side-bar {
+  display: none !important;
+}
+
+/* ===== 信息流顶部的"问点点"AI 搜索横幅 ===== */
+html:not([data-pp-pure='off']):not([data-pp-ai-banner='off']):not([data-pp-search]) .search-area {
+  display: none !important;
+}
+
+/* ===== 下滚后滑入的吸顶搜索框 ===== */
+html:not([data-pp-pure='off']):not([data-pp-sticky-search='off']):not([data-pp-search]) .ai-header-container {
+  display: none !important;
+}
+
+html:not([data-pp-pure='off']):not([data-pp-sticky-search='off']):not([data-pp-search]) .search-area-in-header {
+  display: none !important;
+}
+
+/* ===== 右下角"图片搜索"悬浮按钮 ===== */
+html:not([data-pp-pure='off']):not([data-pp-float-button='off']) .floating-btn-sets .graphic-filter {
+  display: none !important;
+}
+
+/* ===== 布局收回（跟随所属组件的门控） =====
+   侧边栏显示时保留其预留空间，避免信息流被侧栏遮挡 */
+html:not([data-pp-pure='off']):not([data-pp-sidebar='off']) .main-content.with-side-bar {
+  padding-left: 0 !important;
+}
+
+/* 偏移只由根节点门控；不写网格内联样式，缓存节点返回时不会带回旧位移。
+   relative 不会改变 fixed 后代的定位基准，右下角按钮仍固定在视口内。 */
+html[data-pp-feed-centered='on']:not([data-pp-pure='off']):not([data-pp-sidebar='off']):not([data-pp-search]) :is(#exploreFeeds, .channel-container, .feeds-loading) {
+  position: relative;
+  left: var(--pp-feed-shift, 0px) !important;
+}
+
+/* 顶部导航栏隐藏后收回其预留的顶部空间 */
+html:not([data-pp-pure='off']):not([data-pp-header='off']) .feeds-page {
+  padding-top: 16px !important;
+}
+
+/* ===== 独立页面精简开关 ===== */
+html[data-pp-hide-search-suggestions='on'] .sug-box:has(.header),
+html[data-pp-hide-search-suggestions='on'] .suggestion-section {
+  display: none !important;
+}
+
+html[data-pp-hide-ai-search-result='on'] :is(.xhs-ai-message-card, .search_result_ai, .ai-chat-section) {
+  display: none !important;
+}
+
+html[data-pp-hide-live='on'] :is(li, .bottom-channel):has(a[href^='/livelist']),
+html[data-pp-hide-ai-chat='on'] :is(li, .bottom-channel):has(a[href^='/ai_chat']),
+html[data-pp-hide-publish='on'] :is(li, .bottom-channel):has(a[href^='https://creator']),
+html[data-pp-hide-notifications='on'] :is(li, .bottom-channel):has(a[href^='/notification']),
+html[data-pp-hide-red-video='on'] :is(li, .bottom-channel):has(a[href^='/red_video']) {
+  display: none !important;
+}
+
+html[data-pp-hide-notification-badge='on'] .badge-container .count {
+  display: none !important;
+}
+
+/* ===== / 临时纯净搜索：仅调整布局，原生搜索节点和事件保持完整 ===== */
+html[data-pp-search='on'],
+html[data-pp-search='on'] body {
+  overflow: hidden !important;
+}
+
+html[data-pp-search='on'] body,
+html[data-pp-search='on'] .layout {
+  background: #fff !important;
+}
+
+html[data-pp-search='on'] :is(.header-container, .main-content, #mfContainer, .side-bar, .bottom-channel, .ai-header-container, .floating-btn-sets) {
+  visibility: hidden !important;
+}
+
+/* 新版网格及卡片有自己的 visibility:visible，必须同时约束后代。 */
+html[data-pp-search='on'] :is(.header-container, .main-content, .side-bar, .bottom-channel, .ai-header-container, .floating-btn-sets) * {
+  visibility: hidden !important;
+}
+
+/* 清除原生祖先的 fixed 定位包含块和裁剪，不改它们的内联样式。 */
+html[data-pp-search='on'] [data-pp-search-host] {
+  transform: none !important;
+  filter: none !important;
+  backdrop-filter: none !important;
+  perspective: none !important;
+  contain: none !important;
+  overflow: visible !important;
+}
+
+html[data-pp-search='on'] [data-pp-search-target] {
+  position: fixed !important;
+  top: 42vh !important;
+  left: 50% !important;
+  right: auto !important;
+  bottom: auto !important;
+  width: min(640px, calc(100vw - 48px)) !important;
+  max-width: none !important;
+  margin: 0 !important;
+  transform: translate(-50%, -50%) !important;
+  z-index: 1000 !important;
+  visibility: visible !important;
+}
+
+html[data-pp-search='on'] [data-pp-search-target] * {
+  visibility: visible !important;
+}
+
+html[data-pp-search='on'] .input-box[data-pp-search-target][data-pp-search-kind='classic'] {
+  display: flex !important;
+  align-items: center !important;
+  height: 56px !important;
+  box-sizing: border-box !important;
+  border: 1px solid #e9e5f2 !important;
+  background: #f8f7fc !important;
+  box-shadow: 0 8px 32px rgb(50 34 100 / 5%) !important;
+}
+
+html[data-pp-search='on'] .input-box[data-pp-search-target]:focus-within {
+  border-color: #9b85ff !important;
+}
+
+html[data-pp-search='on'] [data-pp-search-target] #search-input {
+  width: 100% !important;
+  min-width: 0 !important;
+  height: 100% !important;
+  font-size: 16px !important;
+}
+
+html[data-pp-search='on'] [data-pp-search-target] .input-button {
+  opacity: 1 !important;
+}
+
+#pp-search-controls {
+  --pp-search-half-height: 28px;
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 1001 !important;
+  pointer-events: none !important;
+  color: #241f35 !important;
+  font-family: 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif !important;
+}
+
+#pp-search-controls .pp-search-title {
+  position: absolute !important;
+  top: calc(42vh - var(--pp-search-half-height) - 60px) !important;
+  left: 50% !important;
+  margin: 0 !important;
+  transform: translateX(-50%) !important;
+  font-size: 26px !important;
+  font-weight: 600 !important;
+  line-height: 1.4 !important;
+}
+
+#pp-search-controls .pp-search-help {
+  position: absolute !important;
+  top: calc(42vh + var(--pp-search-half-height) + 14px) !important;
+  left: 50% !important;
+  margin: 0 !important;
+  transform: translateX(-50%) !important;
+  color: #9691a4 !important;
+  font-size: 12px !important;
+  white-space: nowrap !important;
+}
+
+#pp-search-controls .pp-search-back {
+  position: absolute !important;
+  top: 24px !important;
+  right: 24px !important;
+  padding: 9px 14px !important;
+  border: 1px solid #e9e5f2 !important;
+  border-radius: 10px !important;
+  background: #fff !important;
+  color: #746a8a !important;
+  font: 13px/1.4 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif !important;
+  pointer-events: auto !important;
+  cursor: pointer !important;
+}
+
+#pp-search-controls .pp-search-back:hover,
+#pp-search-controls .pp-search-back:focus-visible {
+  border-color: #9b85ff !important;
+  color: #7c5cff !important;
+}

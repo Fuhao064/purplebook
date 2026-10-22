@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>PurplePurify 本地交互预览</title>
+    <style>
+      * { box-sizing: border-box; }
+      body { margin: 0; font: 15px/1.6 'Microsoft YaHei', system-ui, sans-serif; background: #fff; color: #333; }
+      .header-container { height: 72px; }
+      .header-dual-narrow { display: none; }
+      .mask-paper { display: flex; align-items: center; justify-content: space-between; height: 72px; padding: 12px 32px; backdrop-filter: blur(8px); }
+      .input-box { position: relative; width: 400px; height: 40px; padding: 0 56px 0 16px; background: #f5f5f5; border-radius: 24px; }
+      #search-input { width: 100%; height: 100%; padding: 0; border: 0; outline: 0; background: transparent; font: inherit; }
+      .input-button { position: absolute; right: 8px; top: 0; display: grid; place-items: center; height: 100%; }
+      .search-icon { width: 42px; height: 32px; border: 0; background: transparent; cursor: pointer; }
+      .search-area { padding: 16px; background: #f8f7fc; border: 1px solid #e9e5f2; border-radius: 18px; }
+      .search-area textarea { width: calc(100% - 50px); min-height: 56px; padding: 12px; border: 0; background: transparent; font: inherit; resize: none; }
+      .search-area .input-box { width: 100%; height: 120px; background: #f8f7fc; }
+      .textarea-wrapper { position: relative; }
+      .search-mirror { position: absolute; inset: 0; opacity: 0.00001; z-index: -1; }
+      .sug-box { position: absolute; top: 48px; left: 0; width: 100%; border: 1px solid #eee; background: #fff; padding: 16px; }
+      .side-bar { position: fixed; top: 84px; left: 20px; width: 160px; }
+      .side-bar li { list-style: none; margin: 10px 0; }
+      .side-bar a { color: inherit; text-decoration: none; }
+      .main-content.with-side-bar { padding-left: 190px; }
+      .feeds-page { padding: 24px; }
+      .channel-container { margin: 0 0 22px; }
+      #exploreFeeds { display: grid; grid-template-columns: repeat(3, 220px); gap: 18px; width: 100%; }
+      #exploreFeeds, .note-item { visibility: visible; }
+      .note-item { padding: 16px; background: #f7f6fb; border-radius: 14px; min-height: 260px; }
+      .note-item .cover { height: 150px; border-radius: 10px; background: #e4def6; }
+      .note-item:nth-child(even) .cover { background: #e2ece8; }
+      .qa-tools { margin: 24px; padding: 16px; border: 1px dashed #bbb; background: #fff; }
+      .qa-tools button, .qa-tools input, .qa-tools textarea { margin: 5px; font: inherit; }
+      html[data-pp-search='on'] .qa-tools { visibility: hidden; }
+      .search-result { padding: 24px; }
+      .xhs-ai-message-card { background: #faf3df; padding: 20px; margin-bottom: 20px; }
+      [contenteditable] { border: 1px solid #ddd; padding: 8px; min-height: 40px; }
+    </style>
+    <link rel="stylesheet" href="/content.css" />
+    <script src="/stub.js"></script>
+    <script src="/shared.js"></script>
+    <script src="/content.js"></script>
+    <script src="/search.js"></script>
+  </head>
+  <body>
+    <div id="app">
+      <div id="global" class="layout">
+        <div class="header-dual"><div class="header-container">
+          <header class="mask-paper">
+            <span>小红书原生页面结构预览</span>
+            <div class="input-box" id="native-search-box">
+              <input id="search-input" placeholder="搜索小红书" autocomplete="off" />
+              <div class="input-button"><button class="search-icon" type="button" aria-label="搜索">⌕</button></div>
+              <div class="sug-box"><div class="header">猜你想搜</div><p>默认推荐词</p></div>
+            </div>
+            <button type="button">创作中心</button>
+          </header>
+        </div></div>
+        <aside class="side-bar">
+          <ul>
+            <li><a href="/explore">发现</a></li>
+            <li><a href="/livelist">直播</a></li>
+            <li><a href="/ai_chat">AI 聊天</a></li>
+            <li><a href="https://creator.xiaohongshu.com/publish">发布</a></li>
+            <li><a href="/notification">通知 <span class="badge-container"><span class="count">3</span></span></a></li>
+            <li><a href="/red_video">RED 视频</a></li>
+          </ul>
+        </aside>
+        <main class="main-content with-side-bar">
+          <div id="mfContainer" class="feeds-page feeds-content">
+            <form class="search-area" id="native-ai-form" hidden>
+              <div class="input-box search-box-in-content"><div class="textarea-wrapper">
+                <textarea name="aiSearchTextarea" class="search-mirror" aria-hidden="true" tabindex="-1"></textarea>
+                <textarea id="search-input-in-feeds" name="aiSearchTextarea" aria-label="新版搜索框" placeholder="搜索小红书"></textarea>
+              </div>
+              <button class="search-icon" type="submit" aria-label="提交新版搜索">⌕</button>
+              </div>
+            </form>
+            <div class="channel-container">推荐　穿搭　美食　旅行</div>
+            <div id="exploreFeeds">
+              <section class="note-item"><div class="cover"></div><p>周末徒步路线</p></section>
+              <section class="note-item"><div class="cover"></div><p>简单早餐</p></section>
+              <section class="note-item"><div class="cover"></div><p>书桌整理</p></section>
+              <section class="note-item"><div class="cover"></div><p>相机使用笔记</p></section>
+              <section class="note-item"><div class="cover"></div><p>城市散步</p></section>
+              <section class="note-item"><div class="cover"></div><p>阅读记录</p></section>
+            </div>
+          </div>
+          <div class="search-result" hidden>
+            <h2 id="result-title"></h2>
+            <div class="xhs-ai-message-card">搜索结果 AI 卡片预览</div>
+            <p>笔记搜索结果预览</p>
+          </div>
+        </main>
+      </div>
+    </div>
+    <section class="qa-tools">
+      <strong>本地交互预览</strong>
+      <button id="qa-toggle-pure" type="button">切换纯净信息流</button>
+      <button id="qa-toggle-slash" type="button">切换 / 搜索功能</button>
+      <button id="qa-toggle-ai" type="button">切换隐藏 AI 卡片</button>
+      <button id="qa-toggle-live" type="button">切换隐藏直播</button>
+      <button id="qa-toggle-suggestions" type="button">切换默认搜索建议</button>
+      <p><input id="qa-comment" aria-label="评论输入框" placeholder="输入 / 不应打开搜索" /></p>
+      <p><textarea aria-label="多行输入框"></textarea></p>
+      <div contenteditable="true" aria-label="富文本编辑框">可编辑文字</div>
+    </section>
+    <script>
+      const { normalizeState, buildSearchURL } = PurplePurify;
+      const renderRoute = () => {
+        const isSearch = location.pathname === '/search_result';
+        const aiLayout = new URLSearchParams(location.search).get('layout') === 'ai';
+        document.querySelector('.header-dual').classList.toggle('header-dual-narrow', aiLayout);
+        document.getElementById('native-ai-form').hidden = !aiLayout;
+        document.getElementById('mfContainer').hidden = isSearch;
+        document.querySelector('.search-result').hidden = !isSearch;
+        document.getElementById('result-title').textContent = '搜索：' + (new URLSearchParams(location.search).get('keyword') || '');
+      };
+      const performSearch = (input) => {
+        const keyword = input.value.trim();
+        if (!keyword) return;
+        const url = new URL(buildSearchURL(keyword));
+        history.pushState({}, '', url.pathname + url.search);
+        renderRoute();
+      };
+      document.getElementById('search-input').addEventListener('keyup', (event) => {
+        if (event.key === 'Enter' && !event.isComposing) performSearch(event.target);
+      });
+      document.querySelector('#native-search-box .search-icon').addEventListener('click', () => {
+        performSearch(document.getElementById('search-input'));
+      });
+      document.getElementById('native-ai-form').addEventListener('submit', (event) => {
+        event.preventDefault();
+        performSearch(document.getElementById('search-input-in-feeds'));
+      });
+      document.getElementById('search-input-in-feeds').addEventListener('keyup', (event) => {
+        if (event.key === 'Enter' && !event.shiftKey && !event.isComposing) performSearch(event.target);
+      });
+      window.addEventListener('popstate', renderRoute);
+      document.getElementById('qa-toggle-pure').addEventListener('click', async () => {
+        const state = normalizeState(await chrome.storage.sync.get(null));
+        await chrome.storage.sync.set({ pureMode: !state.pureMode });
+      });
+      for (const [id, key] of [
+        ['qa-toggle-slash', 'slashSearch'], ['qa-toggle-ai', 'hideAISearchResult'],
+        ['qa-toggle-live', 'hideLive'], ['qa-toggle-suggestions', 'hideSearchSuggestions'],
+      ]) {
+        document.getElementById(id).addEventListener('click', async () => {
+          const state = normalizeState(await chrome.storage.sync.get(null));
+          await chrome.storage.sync.set({ features: { ...state.features, [key]: !state.features[key] } });
+        });
+      }
+      renderRoute();
+    </script>
+  </body>
+</html>

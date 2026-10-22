@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>PurplePurify 信息流布局回归预览</title>
+    <style>
+      * { box-sizing: border-box; }
+      body { margin: 0; background: #fafafa; color: #292633; font: 15px/1.6 system-ui, sans-serif; }
+      .layout { max-width: 1728px; margin: auto; overflow-x: hidden; }
+      .side-bar { position: fixed; inset: 0 auto 0 0; width: 164px; padding: 24px; background: #eeeaf8; }
+      .side-bar a { color: inherit; }
+      .main-content.with-side-bar { width: 100%; padding-left: 164px; }
+      .feeds-page { padding: 32px; overflow-x: hidden; }
+      .channel-container { margin-bottom: 24px; }
+      #exploreFeeds { width: 100%; position: relative; }
+      .note-item { position: absolute; top: 0; left: 0; border: 1px solid #d8d1ed; border-radius: 16px; background: white; padding: 16px; }
+      .cover { height: 180px; border-radius: 10px; background: #e4def6; }
+      .note-item:nth-child(even) .cover { height: 240px; background: #dcece6; }
+      .floating-btn-sets { position: fixed; right: 20px; bottom: 100px; padding: 12px; border: 1px solid #ccc; background: white; }
+      .header-container { padding: 16px 32px; }
+      .input-box { width: 400px; height: 48px; padding: 8px 16px; border-radius: 24px; background: #eeeaf8; }
+      #search-input { width: 100%; height: 100%; border: 0; background: transparent; font: inherit; }
+      .qa-tools { position: fixed; left: 16px; right: 16px; bottom: 12px; z-index: 2000; padding: 12px; background: #fff; border: 1px solid #aaa; }
+      .qa-tools button { margin: 3px; padding: 6px 10px; }
+      html[data-pp-search='on'] .qa-tools { visibility: hidden; }
+    </style>
+    <link rel="stylesheet" href="/content.css" />
+    <script src="/stub.js"></script>
+    <script src="/shared.js"></script>
+    <script src="/content.js"></script>
+    <script src="/search.js"></script>
+  </head>
+  <body>
+    <div class="layout">
+      <header class="header-container"><div class="input-box"><input id="search-input" aria-label="搜索小红书" /></div></header>
+      <aside class="side-bar"><a href="/layout">首页</a><p>侧边栏占宽 164px</p></aside>
+      <main class="main-content with-side-bar">
+        <div id="mfContainer" class="feeds-page"><div class="feeds-content">
+          <div class="channel-container">推荐　美食　旅行</div>
+          <div class="feeds-content__feed-layer"><div id="exploreFeeds"></div></div>
+          <div class="feeds-loading">已经到底了</div>
+        </div></div>
+      </main>
+    </div>
+    <section class="qa-tools">
+      <strong>布局回归预览</strong>
+      <button id="qa-pure">切换纯净信息流</button>
+      <button id="qa-sidebar">切换侧栏</button>
+      <button id="qa-leave">离开首页（缓存网格）</button>
+      <button id="qa-return">返回首页</button>
+      <button id="qa-replace">替换网格</button>
+      <button id="qa-narrow">缩窄内容区</button>
+      <button id="qa-wide">恢复内容宽度</button>
+      <output id="qa-state"></output>
+    </section>
+    <script>
+      const main = document.querySelector('main');
+      const home = document.getElementById('mfContainer');
+      let feed = document.getElementById('exploreFeeds');
+      feed.innerHTML = Array.from({ length: 15 }, (_, index) =>
+        `<section class="note-item"><div class="cover"></div><p>帖子 ${index + 1} · 完整边界</p></section>`).join('') +
+        '<div class="floating-btn-sets">视口固定按钮</div>';
+
+      // 模拟站点的绝对定位瀑布流：列数和卡片坐标由站点布局决定。
+      function layoutCards() {
+        if (!feed.isConnected) return;
+        const width = Math.min(feed.clientWidth, document.documentElement.clientWidth - 164 - 64);
+        const columns = width >= 1100 ? 5 : width >= 800 ? 4 : 3;
+        const gap = 32;
+        const cardWidth = (width - (columns - 1) * gap) / columns;
+        const heights = Array(columns).fill(0);
+        for (const [index, card] of [...feed.children].entries()) {
+          if (!card.matches('.note-item')) continue;
+          const column = index % columns;
+          card.style.width = `${cardWidth}px`;
+          card.style.transform = `translate(${column * (cardWidth + gap)}px, ${heights[column]}px)`;
+          heights[column] += card.offsetHeight + gap;
+        }
+        feed.style.height = `${Math.max(...heights)}px`;
+      }
+      new ResizeObserver(layoutCards).observe(main);
+      const renderState = async () => {
+        const state = PurplePurify.normalizeState(await chrome.storage.sync.get(null));
+        document.getElementById('qa-state').textContent = `纯净流：${state.pureMode ? '开' : '关'}；隐藏侧栏：${state.components.sidebar ? '是' : '否'}`;
+      };
+      document.getElementById('qa-pure').onclick = async () => {
+        const state = PurplePurify.normalizeState(await chrome.storage.sync.get(null));
+        await chrome.storage.sync.set({ pureMode: !state.pureMode });
+      };
+      document.getElementById('qa-sidebar').onclick = async () => {
+        const state = PurplePurify.normalizeState(await chrome.storage.sync.get(null));
+        await chrome.storage.sync.set({ components: { ...state.components, sidebar: !state.components.sidebar } });
+      };
+      document.getElementById('qa-leave').onclick = () => home.remove();
+      document.getElementById('qa-return').onclick = () => { main.append(home); layoutCards(); };
+      document.getElementById('qa-replace').onclick = () => {
+        const replacement = feed.cloneNode(true);
+        feed.replaceWith(replacement);
+        feed = replacement;
+        layoutCards();
+      };
+      document.getElementById('qa-narrow').onclick = () => { main.style.maxWidth = '1100px'; layoutCards(); };
+      document.getElementById('qa-wide').onclick = () => { main.style.maxWidth = ''; layoutCards(); };
+      chrome.storage.onChanged.addListener(() => { layoutCards(); renderState(); });
+      renderState();
+      layoutCards();
+    </script>
+  </body>
+</html>
