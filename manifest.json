@@ -1,10 +1,13 @@
 {
   "manifest_version": 3,
-  "name": "PurplePurify — 小红书纯净信息流",
-  "short_name": "PurplePurify",
-  "version": "0.3.3",
+  "name": "PurpleBook — 小红书纯净信息流",
+  "short_name": "PurpleBook",
+  "version": "0.3.4",
   "description": "小红书纯净信息流，按 / 进入纯净搜索；支持弹窗搜索、选中文字右键搜索与页面精简。",
-  "permissions": ["storage", "contextMenus"],
+  "permissions": [
+    "storage",
+    "contextMenus"
+  ],
   "icons": {
     "16": "icons/icon-16.png",
     "32": "icons/icon-32.png",
@@ -12,7 +15,7 @@
     "128": "icons/icon-128.png"
   },
   "action": {
-    "default_title": "PurplePurify — 纯净信息流与搜索",
+    "default_title": "PurpleBook — 纯净信息流与搜索",
     "default_icon": {
       "16": "icons/icon-16.png",
       "32": "icons/icon-32.png",
@@ -28,15 +31,24 @@
       "suggested_key": {
         "default": "Alt+Shift+P"
       },
-      "description": "切换纯净信息流（Chrome 扩展不允许 Ctrl+Alt 组合，故无法沿用 PurpleBook 的 Ctrl+Alt+P）"
+      "description": "切换纯净信息流"
     }
   },
   "content_scripts": [
     {
-      "matches": ["https://www.xiaohongshu.com/*"],
-      "css": ["content.css"],
-      "js": ["shared.js", "content.js", "search.js"],
+      "matches": [
+        "https://www.xiaohongshu.com/*"
+      ],
+      "css": [
+        "content.css"
+      ],
+      "js": [
+        "shared.js",
+        "content.js",
+        "search.js"
+      ],
       "run_at": "document_start"
     }
-  ]
+  ],
+  "homepage_url": "https://github.com/Fuhao064/purplebook"
 }

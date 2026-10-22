@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>PurplePurify 本地交互预览</title>
+    <title>PurpleBook 本地交互预览</title>
     <style>
       * { box-sizing: border-box; }
       body { margin: 0; font: 15px/1.6 'Microsoft YaHei', system-ui, sans-serif; background: #fff; color: #333; }
@@ -108,7 +108,7 @@
       <div contenteditable="true" aria-label="富文本编辑框">可编辑文字</div>
     </section>
     <script>
-      const { normalizeState, buildSearchURL } = PurplePurify;
+      const { normalizeState, buildSearchURL } = PurpleBook;
       const renderRoute = () => {
         const isSearch = location.pathname === '/search_result';
         const aiLayout = new URLSearchParams(location.search).get('layout') === 'ai';

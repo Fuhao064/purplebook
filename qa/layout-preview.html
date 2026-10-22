@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>PurplePurify 信息流布局回归预览</title>
+    <title>PurpleBook 信息流布局回归预览</title>
     <style>
       * { box-sizing: border-box; }
       body { margin: 0; background: #fafafa; color: #292633; font: 15px/1.6 system-ui, sans-serif; }
@@ -81,15 +81,15 @@
       }
       new ResizeObserver(layoutCards).observe(main);
       const renderState = async () => {
-        const state = PurplePurify.normalizeState(await chrome.storage.sync.get(null));
+        const state = PurpleBook.normalizeState(await chrome.storage.sync.get(null));
         document.getElementById('qa-state').textContent = `纯净流：${state.pureMode ? '开' : '关'}；隐藏侧栏：${state.components.sidebar ? '是' : '否'}`;
       };
       document.getElementById('qa-pure').onclick = async () => {
-        const state = PurplePurify.normalizeState(await chrome.storage.sync.get(null));
+        const state = PurpleBook.normalizeState(await chrome.storage.sync.get(null));
         await chrome.storage.sync.set({ pureMode: !state.pureMode });
       };
       document.getElementById('qa-sidebar').onclick = async () => {
-        const state = PurplePurify.normalizeState(await chrome.storage.sync.get(null));
+        const state = PurpleBook.normalizeState(await chrome.storage.sync.get(null));
         await chrome.storage.sync.set({ components: { ...state.components, sidebar: !state.components.sidebar } });
       };
       document.getElementById('qa-leave').onclick = () => home.remove();

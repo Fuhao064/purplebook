@@ -1,12 +1,12 @@
 /**
- * PurplePurify popup —— 总开关 + 分组件开关。
+ * PurpleBook popup —— 总开关 + 分组件开关。
  * 状态读写 chrome.storage.sync（结构见 shared.js）；content script 监听
  * onChanged 热更新。组件开关语义：ON = 隐藏该元素。
  */
 (() => {
   'use strict';
 
-  const { COMPONENT_KEYS, COMPONENT_LABELS, FEATURE_GROUPS, normalizeState, buildSearchURL } = globalThis.PurplePurify;
+  const { COMPONENT_KEYS, COMPONENT_LABELS, FEATURE_GROUPS, normalizeState, buildSearchURL } = globalThis.PurpleBook;
 
   const masterToggle = document.getElementById('toggle');
   const statusText = document.getElementById('status-text');
@@ -38,7 +38,7 @@
     } catch (error) {
       searchError.textContent = '打开搜索失败，请重试。';
       searchError.hidden = false;
-      console.warn('[PurplePurify] 弹窗搜索失败。', error);
+      console.warn('[PurpleBook] 弹窗搜索失败。', error);
     } finally {
       searchSubmit.disabled = false;
     }
@@ -67,7 +67,7 @@
       // storage.set 不做深合并：必须整包写入 components
       const nextComponents = { ...state.components, [key]: !state.components[key] };
       chrome.storage.sync.set({ components: nextComponents }).catch((error) => {
-        console.warn('[PurplePurify] 保存设置失败。', error);
+        console.warn('[PurpleBook] 保存设置失败。', error);
       });
     });
 
@@ -100,7 +100,7 @@
       button.addEventListener('click', () => {
         const features = { ...state.features, [item.key]: !state.features[item.key] };
         chrome.storage.sync.set({ features }).catch((error) => {
-          console.warn('[PurplePurify] 保存搜索/页面设置失败。', error);
+          console.warn('[PurpleBook] 保存搜索/页面设置失败。', error);
         });
       });
       row.append(label, button);
@@ -135,7 +135,7 @@
 
   masterToggle.addEventListener('click', () => {
     chrome.storage.sync.set({ pureMode: !state.pureMode }).catch((error) => {
-      console.warn('[PurplePurify] 保存设置失败。', error);
+      console.warn('[PurpleBook] 保存设置失败。', error);
     });
     // 状态以 storage.onChanged 回流为准，避免本地与同步值不一致
   });
@@ -154,7 +154,7 @@
     try {
       state = normalizeState(await chrome.storage.sync.get(null));
     } catch (error) {
-      console.warn('[PurplePurify] 读取设置失败，按默认显示。', error);
+      console.warn('[PurpleBook] 读取设置失败，按默认显示。', error);
     }
     render();
   })();

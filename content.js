@@ -1,5 +1,5 @@
 /**
- * PurplePurify content script —— 移植自 PurpleBook preload.js（去除 Electron IPC）。
+ * PurpleBook content script —— 移植自原 PurpleBook Electron 版本的 preload.js（去除 Electron IPC）。
  *
  * 1. 纯净信息流开关：CSS 由 manifest 在 document_start 注入（content.css，默认生效），
  *    这里只负责读取设置并切换 <html> 上的门控属性：
@@ -13,7 +13,7 @@
 (() => {
   'use strict';
 
-  const { normalizeState } = globalThis.PurplePurify;
+  const { normalizeState } = globalThis.PurpleBook;
 
   /** dataset 键：组件 key → <html> 上的 data-pp-xxx 豁免属性 */
   const COMPONENT_DATASET_KEYS = {
@@ -204,7 +204,7 @@
     try {
       state = normalizeState(await chrome.storage.sync.get(null));
     } catch (error) {
-      console.warn('[PurplePurify] 读取设置失败，保持默认净化。', error);
+      console.warn('[PurpleBook] 读取设置失败，保持默认净化。', error);
       state = normalizeState(null);
     }
 

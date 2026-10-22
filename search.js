@@ -5,7 +5,7 @@
 (() => {
   'use strict';
 
-  const { normalizeState } = globalThis.PurplePurify;
+  const { normalizeState } = globalThis.PurpleBook;
   document.documentElement.dataset.ppSearchVersion = chrome.runtime.getManifest().version;
   let state = normalizeState(null);
   let view = null;
@@ -212,5 +212,5 @@
   chrome.storage.sync.get(null).then((raw) => {
     state = normalizeState(raw);
     if (!state.features.slashSearch) closeSearch();
-  }).catch((error) => console.warn('[PurplePurify] 读取搜索设置失败。', error));
+  }).catch((error) => console.warn('[PurpleBook] 读取搜索设置失败。', error));
 })();

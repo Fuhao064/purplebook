@@ -1,5 +1,5 @@
 /**
- * PurplePurify 共享常量与状态规范化（content script 与 popup 共用，零依赖）。
+ * PurpleBook 共享常量与状态规范化（content script 与 popup 共用，零依赖）。
  *
  * 状态结构（chrome.storage.sync）：
  *   {
@@ -94,7 +94,7 @@
     };
   }
 
-  globalThis.PurplePurify = {
+  globalThis.PurpleBook = {
     COMPONENT_KEYS,
     COMPONENT_LABELS,
     DEFAULT_COMPONENTS,

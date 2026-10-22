@@ -1,5 +1,5 @@
 /*
- * PurplePurify 纯净信息流 —— 选择器原样移植自 PurpleBook preload.js 的 PURE_CSS。
+ * PurpleBook 纯净信息流 —— 选择器原样移植自原 PurpleBook Electron 版本的 preload.js 的 PURE_CSS。
  *
  * 门控策略：规则默认生效（manifest 在 document_start 注入，默认开启的用户零闪烁）。
  *   - 总开关：content.js 读到 pureMode=false 时给 <html> 设 data-pp-pure="off"，

@@ -1,6 +1,6 @@
 /**
- * PurplePurify DOM 探针 —— 选择器漂移修复工具。
- * 移植自 PurpleBook scripts/inspect-pure.mjs（一键体检）+ find-selector.mjs（按文本反查），
+ * PurpleBook DOM 探针 —— 选择器漂移修复工具。
+ * 移植自原 PurpleBook Electron 版本的 scripts/inspect-pure.mjs（一键体检）+ find-selector.mjs（按文本反查），
  * 扩展场景不需要 9223 调试端口：直接在小红书页面 F12 控制台粘贴运行即可。
  *
  * 用法：
@@ -41,7 +41,7 @@
   };
 
   const style = 'font-weight:bold;color:#7c5cff';
-  console.group('%cPurplePurify 探针', style);
+  console.group('%cPurpleBook 探针', style);
 
   // 1) 门控状态
   const root = document.documentElement;
