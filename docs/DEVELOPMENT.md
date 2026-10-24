@@ -95,6 +95,8 @@ node --check qa/serve.mjs
 | 新版 AI 搜索布局 | 不选中隐藏旧框，标题与提示不覆盖输入框 |
 | 评论、富文本和输入法 | 斜杠不误触搜索视图 |
 | 提交搜索 | 原生结果可见，中文及特殊字符编码正确 |
+| 搜索结果导航 | `/search_result`、`/search_result_ai` 临时关闭布局净化，导航可见，存储值不变 |
+| 搜索返回首页 | 发现入口、浏览器后退与 SPA 切换后恢复保存的净化与居中设置；保存为关闭时保持关闭 |
 | 独立功能 | 总开关关闭时仍遵循自身设置 |
 | 缓存返回、替换网格 | 清除旧偏移，右侧卡片仍可见 |
 | 关闭 / 开启右键搜索 | 菜单消失 / 出现且不重复 |
@@ -109,6 +111,8 @@ node --check qa/serve.mjs
 5. 重新加载扩展并刷新页面，覆盖首页、下滚后的吸顶布局和搜索结果页。
 
 居中通过根节点 `data-pp-feed-centered` 和 `--pp-feed-shift` 控制，不写网格内联 `left` / `position`；临时搜索暂停偏移，关闭净化、显示侧栏或更换节点应重算或清除。
+
+`content.js` 的 `isPureModeActive()` 同时检查保存的总开关和当前路径：搜索结果页只临时设置 `data-pp-pure="off"` 并停止居中，不写入 storage。通过 Navigation API、popstate 和 pageshow 同步 SPA 路由；不支持 Navigation API 时每 400 ms 检查路径。
 
 默认 CSS 在 `document_start` 注入。用户保存为关闭时，异步读取设置前可能短暂出现默认净化布局。
 

@@ -110,7 +110,7 @@
     <script>
       const { normalizeState, buildSearchURL } = PurpleBook;
       const renderRoute = () => {
-        const isSearch = location.pathname === '/search_result';
+        const isSearch = /^\/search_result(?:_ai)?(?:\/|$)/.test(location.pathname);
         const aiLayout = new URLSearchParams(location.search).get('layout') === 'ai';
         document.querySelector('.header-dual').classList.toggle('header-dual-narrow', aiLayout);
         document.getElementById('native-ai-form').hidden = !aiLayout;
@@ -122,7 +122,7 @@
         const keyword = input.value.trim();
         if (!keyword) return;
         const url = new URL(buildSearchURL(keyword));
-        history.pushState({}, '', url.pathname + url.search);
+        history.pushState({}, '', (input.tagName === 'TEXTAREA' ? '/search_result_ai' : url.pathname) + url.search);
         renderRoute();
       };
       document.getElementById('search-input').addEventListener('keyup', (event) => {

@@ -53,7 +53,7 @@ const MIME = {
 const server = createServer((req, res) => {
   const path = req.url.split('?')[0];
   const name = path === '/' ? 'popup.html' :
-    ['/explore', '/search_result'].includes(path) ? 'search-preview.html' :
+    ['/explore', '/search_result', '/search_result_ai'].includes(path) ? 'search-preview.html' :
     path === '/layout' ? 'layout-preview.html' : path.slice(1);
   if (name.includes('..') || name.includes('\\')) {
     res.writeHead(400).end('bad path');

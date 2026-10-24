@@ -11,7 +11,7 @@
   };
   const api = {
     runtime: {
-      getManifest: () => ({ version: '0.3.4', name: 'PurpleBook' }),
+      getManifest: () => ({ version: '0.3.5', name: 'PurpleBook' }),
     },
     tabs: {
       create: async ({ url }) => {

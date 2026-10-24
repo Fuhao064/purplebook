@@ -3,7 +3,7 @@
  *
  * 1. 纯净信息流开关：CSS 由 manifest 在 document_start 注入（content.css，默认生效），
  *    这里只负责读取设置并切换 <html> 上的门控属性：
- *      - data-pp-pure="off"                    信息流总开关关闭，原有布局规则失效
+ *      - data-pp-pure="off"                    总开关关闭或搜索页临时暂停，布局规则失效
  *      - data-pp-header="off" 等               对应组件改为显示（true = 隐藏）
  * 2. 信息流居中：通过受门控的 CSS 平移，不写网格节点的内联 left/position。
  *    偏移只在纯净流开启且侧栏隐藏时生效，页面缓存或重建不会留下旧偏移。
@@ -37,11 +37,16 @@
 
   let state = normalizeState(null);
 
+  // 搜索结果页临时恢复原生导航；不改保存的总开关，返回首页自动恢复。
+  function isPureModeActive() {
+    return state.pureMode && !/^\/search_result(?:_ai)?(?:\/|$)/.test(location.pathname);
+  }
+
   /** 开启时移除门控属性（CSS 默认生效，保证默认开启零闪烁）；关闭时设置 */
   function applyGate() {
     const root = document.documentElement;
 
-    if (state.pureMode) {
+    if (isPureModeActive()) {
       if (root.dataset.ppPure) delete root.dataset.ppPure;
       for (const [key, datasetKey] of Object.entries(COMPONENT_DATASET_KEYS)) {
         if (state.components[key]) {
@@ -51,7 +56,7 @@
         }
       }
     } else {
-      root.dataset.ppPure = 'off'; // 总开关关闭，其余属性无需逐个处理
+      root.dataset.ppPure = 'off'; // 总开关关闭或搜索页临时暂停净化
     }
     for (const [key, datasetKey] of Object.entries(FEATURE_DATASET_KEYS)) {
       root.dataset[datasetKey] = state.features[key] ? 'on' : 'off';
@@ -175,9 +180,9 @@
     else clearCentering();
   }
 
-  /** 居中器只在"总开关开且侧边栏被隐藏"时介入：侧边栏显示 = 保持原始布局 */
+  /** 居中器只在净化实际生效且侧栏隐藏时介入，搜索页保持原始布局。 */
   function shouldCenter() {
-    return state.pureMode && state.components.sidebar === true;
+    return isPureModeActive() && state.components.sidebar === true;
   }
 
   /* ================= 状态切换与启动 ================= */
@@ -186,6 +191,23 @@
     applyGate();
     if (shouldCenter()) ensureCenterer();
     else stopCenterer();
+  }
+
+  let pathname = location.pathname;
+  function syncRoute() {
+    if (pathname === location.pathname) return;
+    pathname = location.pathname;
+    activate();
+  }
+
+  // 同时覆盖原生搜索的 SPA 跳转、前进后退及缓存恢复，不改站点 history。
+  window.addEventListener('popstate', syncRoute);
+  window.addEventListener('pageshow', syncRoute);
+  if (window.navigation) {
+    window.navigation.addEventListener('currententrychange', syncRoute);
+    window.navigation.addEventListener('navigatesuccess', syncRoute);
+  } else {
+    setInterval(syncRoute, 400);
   }
 
   chrome.storage.onChanged.addListener((changes, area) => {
@@ -199,6 +221,9 @@
     state = next;
     activate();
   });
+
+  // 直接打开搜索链接时，在异步读取设置前就恢复导航。
+  activate();
 
   (async () => {
     try {
