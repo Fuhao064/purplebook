@@ -6,10 +6,11 @@
 (() => {
   'use strict';
 
-  const { COMPONENT_KEYS, COMPONENT_LABELS, FEATURE_GROUPS, normalizeState, buildSearchURL } = globalThis.PurpleBook;
+  const { COMPONENT_KEYS, COMPONENT_LABELS, DEFAULT_COMPONENTS, FEATURE_GROUPS, normalizeState, buildSearchURL } = globalThis.PurpleBook;
 
   const masterToggle = document.getElementById('toggle');
   const statusText = document.getElementById('status-text');
+  const defaultLayout = document.getElementById('default-layout');
   const componentRows = document.getElementById('component-rows');
   const componentsCard = document.getElementById('components');
   const featureGroups = document.getElementById('feature-groups');
@@ -18,8 +19,8 @@
   const searchSubmit = document.getElementById('search-submit');
   const searchError = document.getElementById('search-error');
 
-  const STATUS_ON = '已开启：按下方组件开关净化信息流。';
-  const STATUS_OFF = '纯净信息流已关闭；搜索增强仍可使用。';
+  const STATUS_ON = '已开启：下方开关控制各页面元素的隐藏。';
+  const STATUS_OFF = '已关闭：下方组件恢复显示；搜索增强仍可使用。';
 
   let state = normalizeState(null);
 
@@ -138,6 +139,18 @@
       console.warn('[PurpleBook] 保存设置失败。', error);
     });
     // 状态以 storage.onChanged 回流为准，避免本地与同步值不一致
+  });
+
+  defaultLayout.addEventListener('click', async () => {
+    defaultLayout.disabled = true;
+    try {
+      await chrome.storage.sync.set({ pureMode: true, components: { ...DEFAULT_COMPONENTS } });
+    } catch (error) {
+      statusText.textContent = '恢复默认布局失败，请重试。';
+      console.warn('[PurpleBook] 恢复默认布局失败。', error);
+    } finally {
+      defaultLayout.disabled = false;
+    }
   });
 
   chrome.storage.onChanged.addListener((changes, area) => {

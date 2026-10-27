@@ -1,25 +1,25 @@
-/**
- * 临时纯净搜索视图：原生搜索框留在原 DOM，CSS 临时居中。
- * 不改 pureMode/components、不改输入框的值或站点搜索事件。
- */
+/** 原位展开 / 收起原生搜索框；不移动节点、不改输入值或站点搜索事件。 */
 (() => {
   'use strict';
-
   const { normalizeState } = globalThis.PurpleBook;
-  document.documentElement.dataset.ppSearchVersion = chrome.runtime.getManifest().version;
+  const root = document.documentElement;
+  // 版本只用于诊断。扩展重载后的旧上下文可能无法访问 runtime，不能因此中断搜索。
+  try {
+    root.dataset.ppSearchVersion = globalThis.chrome?.runtime?.getManifest?.()?.version || 'unavailable';
+  } catch {
+    root.dataset.ppSearchVersion = 'unavailable';
+  }
   let state = normalizeState(null);
   let view = null;
   let routeTimer = null;
-  let submitTimer = null;
   let observer = null;
-  let resizeObserver = null;
 
   function isUsableSearch(input) {
     if (input.disabled || input.readOnly || input.closest('[hidden], [inert], [aria-hidden="true"]')) return false;
     const rect = input.getBoundingClientRect();
     if (rect.width <= 0 || rect.height <= 0) return false;
-    // 新版会保留 display:none 的旧搜索框；其他扩展也可能注入透明镜像输入。
-    for (let node = input; node && node !== document.documentElement; node = node.parentElement) {
+    // 新版仍保留隐藏的旧框；跳过透明镜像与不可交互的输入。
+    for (let node = input; node && node !== root; node = node.parentElement) {
       const style = getComputedStyle(node);
       if (style.visibility !== 'visible' || Number(style.opacity) < 0.01) return false;
     }
@@ -28,7 +28,6 @@
 
   function findSearch() {
     const classicInputs = [...document.querySelectorAll('#search-input')];
-    // 优先使用笔记搜索；没有经典输入框时兼容新版搜索区域。
     const candidates = [
       ...classicInputs.filter((input) => input.closest('.header-container')),
       ...classicInputs,
@@ -47,24 +46,15 @@
     const previous = view;
     view = null;
     clearInterval(routeTimer);
-    clearTimeout(submitTimer);
     routeTimer = null;
-    submitTimer = null;
     observer?.disconnect();
     observer = null;
-    resizeObserver?.disconnect();
-    resizeObserver = null;
-
-    delete document.documentElement.dataset.ppSearch;
-    delete previous.target.dataset.ppSearchTarget;
-    delete previous.target.dataset.ppSearchKind;
-    for (const host of previous.hosts) delete host.dataset.ppSearchHost;
-    previous.controls.remove();
-
-    if (restore && location.href === previous.url) {
-      if (previous.focus?.isConnected && typeof previous.focus.focus === 'function') {
-        previous.focus.focus({ preventScroll: true });
-      }
+    if (previous.target.contains(document.activeElement)) document.activeElement.blur();
+    delete root.dataset.ppSearch;
+    if (restore && location.href === previous.url && previous.focus?.isConnected) {
+      previous.focus.focus?.({ preventScroll: true });
+    }
+    if (restore && location.href === previous.url && previous.scrolled) {
       window.scrollTo(previous.scrollX, previous.scrollY);
     }
   }
@@ -72,22 +62,13 @@
   function syncPage() {
     if (view && (
       location.href !== view.url || !view.input.isConnected || !view.target.isConnected ||
-      view.input.getBoundingClientRect().width <= 0
-    )) {
-      closeSearch(false);
-    }
+      !isUsableSearch(view.input)
+    )) closeSearch(false);
   }
 
   function openSearch() {
-    if (view) {
-      view.input.focus({ preventScroll: true });
-      return true;
-    }
     if (!document.body) return false;
-    const root = document.documentElement;
-    root.dataset.ppSearchVersion = chrome.runtime.getManifest().version;
-    // 同一同步任务内临时解除本扩展的隐藏规则，按站点真实布局挑选输入框。
-    // 此阶段不隐藏页面内容，visibility/opacity 检查不会被搜索视图本身干扰。
+    // 同一任务内临时解除扩展隐藏，按站点原布局选择真正可用的搜索框。
     root.dataset.ppSearch = 'preparing';
     let search;
     try {
@@ -96,54 +77,21 @@
       if (!search) delete root.dataset.ppSearch;
     }
     if (!search) return false;
-
-    const controls = document.createElement('div');
-    controls.id = 'pp-search-controls';
-    const title = document.createElement('h1');
-    title.className = 'pp-search-title';
-    title.textContent = '纯净搜索';
-    const hint = document.createElement('p');
-    hint.className = 'pp-search-help';
-    hint.textContent = 'Enter 搜索 · Esc 返回';
-    const back = document.createElement('button');
-    back.type = 'button';
-    back.className = 'pp-search-back';
-    back.textContent = '返回页面  Esc';
-    back.addEventListener('click', () => closeSearch());
-    controls.append(title, hint, back);
-
-    const hosts = [];
-    for (let host = search.target.parentElement; host && host !== document.body; host = host.parentElement) {
-      hosts.push(host);
-    }
-    view = {
-      ...search,
-      hosts,
-      controls,
-      focus: document.activeElement,
-      scrollX: window.scrollX,
-      scrollY: window.scrollY,
-      url: location.href,
-    };
-    search.target.dataset.ppSearchTarget = 'on';
-    search.target.dataset.ppSearchKind = search.input.tagName === 'TEXTAREA' ? 'ai' : 'classic';
-    for (const host of hosts) host.dataset.ppSearchHost = 'on';
-    document.documentElement.dataset.ppSearch = 'on';
-    document.body.append(controls);
-    observer = new MutationObserver(syncPage);
-    observer.observe(document.body, { childList: true, subtree: true });
-    const alignLabels = () => {
-      if (view) controls.style.setProperty('--pp-search-half-height', `${search.target.getBoundingClientRect().height / 2}px`);
-    };
-    resizeObserver = new ResizeObserver(alignLabels);
-    resizeObserver.observe(search.target);
-    alignLabels();
+    view = { ...search, focus: document.activeElement, url: location.href,
+      scrollX: window.scrollX, scrollY: window.scrollY, scrolled: false };
+    root.dataset.ppSearch = 'on';
     search.input.focus({ preventScroll: true });
     if (document.activeElement !== search.input) {
       closeSearch(false);
       return false;
     }
-    // 只在搜索视图开启时兜底检查 SPA URL；不修改页面世界的 history 方法。
+    const rect = search.input.getBoundingClientRect();
+    if (rect.top < 0 || rect.bottom > window.innerHeight) {
+      view.scrolled = true;
+      search.input.scrollIntoView({ block: 'nearest', behavior: 'instant' });
+    }
+    observer = new MutationObserver(syncPage);
+    observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'style', 'hidden'] });
     routeTimer = setInterval(syncPage, 400);
     return true;
   }
@@ -154,63 +102,54 @@
     ));
   }
 
-  function closeAfterSubmit() {
-    if (!view?.input.value.trim()) return;
-    // 先让小红书原生事件处理搜索/登录，再恢复页面。
-    clearTimeout(submitTimer);
-    submitTimer = setTimeout(() => closeSearch(false), 0);
-  }
-
   function isSlash(event) {
     return event.key === '/' || event.key === '／' || event.code === 'NumpadDivide' ||
       (event.code === 'Slash' && !event.shiftKey);
   }
 
   window.addEventListener('keydown', (event) => {
+    if (event.isComposing || event.keyCode === 229 || event.defaultPrevented || event.repeat ||
+      event.ctrlKey || event.altKey || event.metaKey) return;
     if (view && event.key === 'Escape') {
-      if (event.isComposing || event.keyCode === 229) return;
+      if (isEditing(event) && !event.composedPath().includes(view.input)) return;
       event.preventDefault();
       event.stopImmediatePropagation();
       closeSearch();
       return;
     }
-    if (
-      !isSlash(event) || !state.features.slashSearch || event.defaultPrevented || event.repeat ||
-      event.ctrlKey || event.altKey || event.metaKey || isEditing(event)
-    ) return;
-    if (openSearch()) {
-      event.preventDefault();
-      event.stopImmediatePropagation();
+    if (!isSlash(event) || !state.features.slashSearch) return;
+    // 展开后焦点在原生搜索输入框，第二次 / 也可直接收起。
+    if (isEditing(event) && !(view && event.composedPath().includes(view.input))) return;
+    if (view) {
+      closeSearch();
+    } else if (!openSearch()) {
+      return;
     }
+    event.preventDefault();
+    event.stopImmediatePropagation();
   }, true);
 
-  // 兼容站点在 keydown 或 keyup 处理 Enter；不提前隐藏输入框导致 keyup 丢失。
-  document.addEventListener('keyup', (event) => {
-    if (
-      view && event.key === 'Enter' && event.target === view.input && view.input.tagName === 'INPUT' &&
-      !event.isComposing && !event.shiftKey
-    ) closeAfterSubmit();
-  }, true);
-
-  document.addEventListener('submit', (event) => {
-    if (view && event.target instanceof Element && event.target.contains(view.input)) closeAfterSubmit();
-  }, true);
-
-  document.addEventListener('click', (event) => {
-    if (!view || !(event.target instanceof Element) || !view.target.contains(event.target)) return;
-    if (event.target.closest('.search-icon, button[type="submit"]')) closeAfterSubmit();
-  }, true);
   window.addEventListener('popstate', syncPage);
   window.addEventListener('hashchange', syncPage);
+  window.addEventListener('pageshow', syncPage);
+  window.navigation?.addEventListener('currententrychange', syncPage);
   window.navigation?.addEventListener('navigatesuccess', syncPage);
 
-  chrome.storage.onChanged.addListener((changes, area) => {
-    if (area !== 'sync' || !changes.features) return;
-    state = normalizeState({ ...state, features: changes.features.newValue });
-    if (!state.features.slashSearch) closeSearch();
-  });
-  chrome.storage.sync.get(null).then((raw) => {
-    state = normalizeState(raw);
-    if (!state.features.slashSearch) closeSearch();
-  }).catch((error) => console.warn('[PurpleBook] 读取搜索设置失败。', error));
+  try {
+    globalThis.chrome?.storage?.onChanged?.addListener((changes, area) => {
+      if (area !== 'sync' || !['features', 'components', 'pureMode'].some((key) => key in changes)) return;
+      if (changes.features) state = normalizeState({ ...state, features: changes.features.newValue });
+      closeSearch();
+    });
+  } catch (error) {
+    console.warn('[PurpleBook] 搜索设置同步暂不可用，请刷新页面。', error);
+  }
+  (async () => {
+    try {
+      state = normalizeState(await globalThis.chrome?.storage?.sync?.get?.(null));
+      if (!state.features.slashSearch) closeSearch();
+    } catch (error) {
+      console.warn('[PurpleBook] 读取搜索设置失败，请刷新页面。', error);
+    }
+  })();
 })();

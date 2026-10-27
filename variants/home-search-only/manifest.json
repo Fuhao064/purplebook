@@ -1,0 +1,17 @@
+{
+  "manifest_version": 3,
+  "name": "PurpleBook — 仅隐藏主页搜索框",
+  "short_name": "PurpleBook Lite",
+  "version": "0.3.8",
+  "description": "只隐藏小红书主页搜索框，按 / 在原位置展开或收起，Esc 收起。",
+  "permissions": ["storage"],
+  "icons": { "16": "icons/icon-16.png", "32": "icons/icon-32.png", "48": "icons/icon-48.png", "128": "icons/icon-128.png" },
+  "action": { "default_title": "PurpleBook — 主页搜索框", "default_popup": "popup.html" },
+  "content_scripts": [{
+    "matches": ["https://www.xiaohongshu.com/*"],
+    "css": ["content.css"],
+    "js": ["shared.js", "content.js", "search.js"],
+    "run_at": "document_start"
+  }],
+  "homepage_url": "https://github.com/Fuhao064/purplebook"
+}

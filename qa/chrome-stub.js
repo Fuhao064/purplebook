@@ -1,6 +1,6 @@
 // Popup QA 用 chrome/browser API stub —— 仅用于本地渲染自检，不属于扩展产物。
 (function () {
-  let stored = { pureMode: true, components: { header: true, sidebar: true, aiBanner: true, stickySearch: true, floatButton: true } };
+  let stored = {};
   const fireChanged = (obj) => {
     // 与真实 chrome.storage.onChanged 一致：changes = { key: { newValue } }
     const changes = {};
@@ -11,7 +11,7 @@
   };
   const api = {
     runtime: {
-      getManifest: () => ({ version: '0.3.5', name: 'PurpleBook' }),
+      getManifest: () => ({ version: '0.3.8', name: 'PurpleBook' }),
     },
     tabs: {
       create: async ({ url }) => {
@@ -56,6 +56,15 @@
       },
     },
   };
+  // 启动时模拟扩展接口异常；仅作用于本地预览，不进入扩展安装包。
+  const fault = new URLSearchParams(location.search).get('api');
+  if (fault === 'missing-runtime') delete api.runtime;
+  if (fault === 'stale-context') {
+    const invalidated = () => { throw new Error('Extension context invalidated.'); };
+    api.runtime.getManifest = invalidated;
+    api.storage.sync.get = invalidated;
+    api.storage.onChanged.addListener = invalidated;
+  }
   window.chrome = api;
   window.browser = api;
   console.log('[stub] chrome/browser API ready');

@@ -1,0 +1,7 @@
+/* 仅主页搜索区域受控，不改变导航、侧栏、信息流或其他页面。 */
+html[data-pp-home-search='on']:not([data-pp-search]) :is(
+  .header-container .input-box:has(#search-input),
+  .search-area, .ai-header-container, .search-area-in-header
+) {
+  display: none !important;
+}

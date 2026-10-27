@@ -59,13 +59,20 @@ const server = createServer((req, res) => {
     res.writeHead(400).end('bad path');
     return;
   }
-  const file = join(target, name);
+  const file = name.startsWith('lite/') ? join(projectRoot, 'dist', 'home-search-only', name.slice(5)) : join(target, name);
   if (!existsSync(file)) {
     res.writeHead(404).end('not found');
     return;
   }
   res.writeHead(200, { 'Content-Type': MIME[extname(file)] ?? 'application/octet-stream' });
-  res.end(readFileSync(file));
+  let body = readFileSync(file);
+  if (name === 'search-preview.html' && new URL(req.url, 'http://localhost').searchParams.get('variant') === 'lite') {
+    body = body.toString().replace(/(href|src)="\/(content\.css|shared\.js|content\.js|search\.js)"/g, '$1="/lite/$2"');
+  }
+  if (name === 'lite/popup.html') {
+    body = body.toString().replace('<script src="shared.js">', '<script src="/stub.js"></script><script src="shared.js">');
+  }
+  res.end(body);
 });
 server.listen(port, '127.0.0.1', () => {
   const actualPort = server.address().port;

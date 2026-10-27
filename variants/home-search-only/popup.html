@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>PurpleBook Lite</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header class="header"><span class="brand-mark">P</span><div class="brand-text"><h1>PurpleBook Lite</h1><p>仅隐藏主页搜索框</p></div></header>
+    <main>
+      <div class="row"><span class="row-label">隐藏主页搜索框</span><button id="toggle" class="toggle" type="button" role="switch" aria-checked="true" aria-label="隐藏主页搜索框"><span class="thumb"></span></button></div>
+      <div class="row"><span class="row-label">按 / 展开或收起</span><button id="slash-toggle" class="toggle" type="button" role="switch" aria-checked="true" aria-label="按 / 展开或收起"><span class="thumb"></span></button></div>
+      <p class="hint">按 <kbd>/</kbd> 原位展开，再按 <kbd>/</kbd> 或 <kbd>Esc</kbd> 收起。搜索框中的 / 用于收起；其他编辑框不受影响。</p>
+      <p class="hint">保留导航、侧栏与信息流；搜索结果页沿用原生界面。</p>
+      <p id="status" class="status" role="status"></p>
+    </main>
+    <script src="shared.js"></script>
+    <script src="popup.js"></script>
+  </body>
+</html>

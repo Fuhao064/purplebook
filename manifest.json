@@ -1,9 +1,9 @@
 {
   "manifest_version": 3,
-  "name": "PurpleBook — 小红书纯净信息流",
+  "name": "PurpleBook — 小红书页面精简",
   "short_name": "PurpleBook",
-  "version": "0.3.5",
-  "description": "小红书纯净信息流，按 / 进入纯净搜索；支持弹窗搜索、选中文字右键搜索与页面精简。",
+  "version": "0.3.8",
+  "description": "精简小红书页面，默认显示侧栏、隐藏其余页面组件，按 / 原位展开或收起搜索框；支持弹窗搜索和选中文字右键搜索。",
   "permissions": [
     "storage",
     "contextMenus"
@@ -15,7 +15,7 @@
     "128": "icons/icon-128.png"
   },
   "action": {
-    "default_title": "PurpleBook — 纯净信息流与搜索",
+    "default_title": "PurpleBook — 页面精简与搜索",
     "default_icon": {
       "16": "icons/icon-16.png",
       "32": "icons/icon-32.png",
@@ -31,7 +31,7 @@
       "suggested_key": {
         "default": "Alt+Shift+P"
       },
-      "description": "切换纯净信息流"
+      "description": "切换页面精简"
     }
   },
   "content_scripts": [

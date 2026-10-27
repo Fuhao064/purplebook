@@ -172,6 +172,29 @@ main {
   color: var(--pp-text-sub);
 }
 
+.layout-defaults {
+  display: block;
+  width: 100%;
+  margin: 0 0 10px;
+  padding: 7px 8px;
+  border: 1px solid var(--pp-border);
+  border-radius: 8px;
+  background: var(--pp-card);
+  color: var(--pp-accent);
+  font: 11px/1.5 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
+  cursor: pointer;
+}
+
+.layout-defaults:hover,
+.layout-defaults:focus-visible {
+  background: var(--pp-accent-soft);
+}
+
+.layout-defaults:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+
 /* ---- 分组件隐藏区 ---- */
 
 .card {

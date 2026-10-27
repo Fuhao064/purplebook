@@ -3,10 +3,11 @@
  *
  * 状态结构（chrome.storage.sync）：
  *   {
- *     pureMode: true,                    // 信息流总开关：false = 关闭原有布局净化
+ *     pureMode: true,                    // 页面精简总开关：false = 显示受控页面元素
  *     components: {                      // 分组件隐藏：true = 隐藏该元素
+ *       homeSearch: true,                //   仅主页的原生搜索框
  *       header: true,                    //   顶部导航栏
- *       sidebar: true,                   //   左侧边栏
+ *       sidebar: false,                  //   左侧边栏（默认显示）
  *       aiBanner: true,                  //   「问点点」AI 搜索横幅
  *       stickySearch: true,              //   吸顶搜索框
  *       floatButton: true                //   「图片搜索」悬浮按钮
@@ -14,15 +15,16 @@
  *     features: { slashSearch: true, contextMenuSearch: true, ... }
  *   }
  *
- * 语义：true = 隐藏（与"净化"心智一致）；默认全部 true，
- * 旧版本（只有 pureMode）升级后行为不变。
+ * 语义：true = 隐藏；默认显示侧栏、隐藏其余组件。
+ * 已保存的开关继续保留，缺失项按当前默认值补齐。
  */
 (function () {
   'use strict';
 
-  const COMPONENT_KEYS = ['header', 'sidebar', 'aiBanner', 'stickySearch', 'floatButton'];
+  const COMPONENT_KEYS = ['homeSearch', 'header', 'sidebar', 'aiBanner', 'stickySearch', 'floatButton'];
 
   const COMPONENT_LABELS = {
+    homeSearch: '主页搜索框',
     header: '顶部导航栏',
     sidebar: '左侧边栏',
     aiBanner: '「问点点」AI 横幅',
@@ -31,8 +33,9 @@
   };
 
   const DEFAULT_COMPONENTS = {
+    homeSearch: true,
     header: true,
-    sidebar: true,
+    sidebar: false,
     aiBanner: true,
     stickySearch: true,
     floatButton: true,
@@ -42,7 +45,7 @@
     {
       label: '搜索增强',
       items: [
-        { key: 'slashSearch', label: '按 / 打开纯净搜索', defaultValue: true },
+        { key: 'slashSearch', label: '按 / 展开或收起搜索框', defaultValue: true },
         { key: 'contextMenuSearch', label: '选中文字右键搜索', defaultValue: true },
         { key: 'hideSearchSuggestions', label: '隐藏「猜你想搜」', defaultValue: true },
         { key: 'hideAISearchResult', label: '隐藏搜索结果 AI 卡片', defaultValue: false },

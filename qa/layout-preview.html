@@ -23,7 +23,6 @@
       #search-input { width: 100%; height: 100%; border: 0; background: transparent; font: inherit; }
       .qa-tools { position: fixed; left: 16px; right: 16px; bottom: 12px; z-index: 2000; padding: 12px; background: #fff; border: 1px solid #aaa; }
       .qa-tools button { margin: 3px; padding: 6px 10px; }
-      html[data-pp-search='on'] .qa-tools { visibility: hidden; }
     </style>
     <link rel="stylesheet" href="/content.css" />
     <script src="/stub.js"></script>
@@ -45,7 +44,7 @@
     </div>
     <section class="qa-tools">
       <strong>布局回归预览</strong>
-      <button id="qa-pure">切换纯净信息流</button>
+      <button id="qa-pure">切换页面精简</button>
       <button id="qa-sidebar">切换侧栏</button>
       <button id="qa-leave">离开首页（缓存网格）</button>
       <button id="qa-return">返回首页</button>
@@ -82,7 +81,7 @@
       new ResizeObserver(layoutCards).observe(main);
       const renderState = async () => {
         const state = PurpleBook.normalizeState(await chrome.storage.sync.get(null));
-        document.getElementById('qa-state').textContent = `纯净流：${state.pureMode ? '开' : '关'}；隐藏侧栏：${state.components.sidebar ? '是' : '否'}`;
+        document.getElementById('qa-state').textContent = `页面精简：${state.pureMode ? '开' : '关'}；隐藏侧栏：${state.components.sidebar ? '是' : '否'}`;
       };
       document.getElementById('qa-pure').onclick = async () => {
         const state = PurpleBook.normalizeState(await chrome.storage.sync.get(null));

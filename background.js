@@ -1,6 +1,6 @@
 /**
  * PurpleBook background（非持久 service worker）。
- * Alt+Shift+P 切换纯净信息流；选中文字右键搜索在新标签中打开。
+ * Alt+Shift+P 切换页面精简；选中文字右键搜索在新标签中打开。
  */
 importScripts('shared.js');
 

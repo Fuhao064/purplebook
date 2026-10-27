@@ -1,12 +1,12 @@
 /**
  * PurpleBook content script —— 移植自原 PurpleBook Electron 版本的 preload.js（去除 Electron IPC）。
  *
- * 1. 纯净信息流开关：CSS 由 manifest 在 document_start 注入（content.css，默认生效），
+ * 1. 页面精简开关：CSS 由 manifest 在 document_start 注入（content.css，默认生效），
  *    这里只负责读取设置并切换 <html> 上的门控属性：
  *      - data-pp-pure="off"                    总开关关闭或搜索页临时暂停，布局规则失效
  *      - data-pp-header="off" 等               对应组件改为显示（true = 隐藏）
  * 2. 信息流居中：通过受门控的 CSS 平移，不写网格节点的内联 left/position。
- *    偏移只在纯净流开启且侧栏隐藏时生效，页面缓存或重建不会留下旧偏移。
+ *    偏移只在页面精简开启且侧栏隐藏时生效，页面缓存或重建不会留下旧偏移。
  * 3. 状态存 chrome.storage.sync（结构见 shared.js）。popup / 快捷键 / 本脚本
  *    三端统一由 storage.onChanged 驱动，切换即时生效，无需刷新页面。
  */
@@ -42,18 +42,16 @@
     return state.pureMode && !/^\/search_result(?:_ai)?(?:\/|$)/.test(location.pathname);
   }
 
-  /** 开启时移除门控属性（CSS 默认生效，保证默认开启零闪烁）；关闭时设置 */
+  /** 明确写入组件隐藏状态；CSS 在读取设置前默认显示侧栏、隐藏其他组件。 */
   function applyGate() {
     const root = document.documentElement;
+    root.dataset.ppHomeSearch = state.pureMode && state.components.homeSearch &&
+      /^\/(?:explore\/?)?$/.test(location.pathname) ? 'on' : 'off';
 
     if (isPureModeActive()) {
       if (root.dataset.ppPure) delete root.dataset.ppPure;
       for (const [key, datasetKey] of Object.entries(COMPONENT_DATASET_KEYS)) {
-        if (state.components[key]) {
-          delete root.dataset[datasetKey]; // 隐藏：规则默认生效
-        } else {
-          root.dataset[datasetKey] = 'off'; // 显示：显式豁免
-        }
+        root.dataset[datasetKey] = state.components[key] ? 'on' : 'off';
       }
     } else {
       root.dataset.ppPure = 'off'; // 总开关关闭或搜索页临时暂停净化
@@ -94,7 +92,7 @@
     const number = value => parseFloat(value) || 0;
     function recentre() {
       if (disposed) return;
-      if (!shouldCenter() || root.hasAttribute('data-pp-search')) {
+      if (!shouldCenter()) {
         clearCentering();
         return;
       }
@@ -210,24 +208,28 @@
     setInterval(syncRoute, 400);
   }
 
-  chrome.storage.onChanged.addListener((changes, area) => {
-    if (area !== 'sync') return;
-    if (!('pureMode' in changes) && !('components' in changes) && !('features' in changes)) return;
-    const next = normalizeState({
-      pureMode: 'pureMode' in changes ? changes.pureMode.newValue : state.pureMode,
-      components: 'components' in changes ? changes.components.newValue : state.components,
-      features: 'features' in changes ? changes.features.newValue : state.features,
+  try {
+    globalThis.chrome?.storage?.onChanged?.addListener((changes, area) => {
+      if (area !== 'sync') return;
+      if (!('pureMode' in changes) && !('components' in changes) && !('features' in changes)) return;
+      const next = normalizeState({
+        pureMode: 'pureMode' in changes ? changes.pureMode.newValue : state.pureMode,
+        components: 'components' in changes ? changes.components.newValue : state.components,
+        features: 'features' in changes ? changes.features.newValue : state.features,
+      });
+      state = next;
+      activate();
     });
-    state = next;
-    activate();
-  });
+  } catch (error) {
+    console.warn('[PurpleBook] 页面设置同步暂不可用，请刷新页面。', error);
+  }
 
   // 直接打开搜索链接时，在异步读取设置前就恢复导航。
   activate();
 
   (async () => {
     try {
-      state = normalizeState(await chrome.storage.sync.get(null));
+      state = normalizeState(await globalThis.chrome?.storage?.sync?.get?.(null));
     } catch (error) {
       console.warn('[PurpleBook] 读取设置失败，保持默认净化。', error);
       state = normalizeState(null);

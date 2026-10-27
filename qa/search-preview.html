@@ -33,7 +33,6 @@
       .note-item:nth-child(even) .cover { background: #e2ece8; }
       .qa-tools { margin: 24px; padding: 16px; border: 1px dashed #bbb; background: #fff; }
       .qa-tools button, .qa-tools input, .qa-tools textarea { margin: 5px; font: inherit; }
-      html[data-pp-search='on'] .qa-tools { visibility: hidden; }
       .search-result { padding: 24px; }
       .xhs-ai-message-card { background: #faf3df; padding: 20px; margin-bottom: 20px; }
       [contenteditable] { border: 1px solid #ddd; padding: 8px; min-height: 40px; }
@@ -98,7 +97,7 @@
     </div>
     <section class="qa-tools">
       <strong>本地交互预览</strong>
-      <button id="qa-toggle-pure" type="button">切换纯净信息流</button>
+      <button id="qa-toggle-pure" type="button">切换页面精简</button>
       <button id="qa-toggle-slash" type="button">切换 / 搜索功能</button>
       <button id="qa-toggle-ai" type="button">切换隐藏 AI 卡片</button>
       <button id="qa-toggle-live" type="button">切换隐藏直播</button>
@@ -108,7 +107,8 @@
       <div contenteditable="true" aria-label="富文本编辑框">可编辑文字</div>
     </section>
     <script>
-      const { normalizeState, buildSearchURL } = PurpleBook;
+      const { normalizeState } = PurpleBook;
+      const buildSearchURL = (keyword) => 'https://www.xiaohongshu.com/search_result?' + new URLSearchParams({ keyword, source: 'web_explore_feed' });
       const renderRoute = () => {
         const isSearch = /^\/search_result(?:_ai)?(?:\/|$)/.test(location.pathname);
         const aiLayout = new URLSearchParams(location.search).get('layout') === 'ai';

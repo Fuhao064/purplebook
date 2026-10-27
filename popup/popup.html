@@ -11,7 +11,7 @@
       <span class="brand-mark">P</span>
       <div class="brand-text">
         <h1>PurpleBook</h1>
-        <p>小红书纯净信息流与搜索</p>
+        <p>小红书页面精简与搜索</p>
       </div>
     </header>
 
@@ -26,12 +26,13 @@
       </form>
 
       <div class="row">
-        <span class="row-label">纯净信息流</span>
-        <button id="toggle" class="toggle" type="button" role="switch" aria-checked="true" aria-label="纯净信息流">
+        <span class="row-label">页面精简</span>
+        <button id="toggle" class="toggle" type="button" role="switch" aria-checked="true" aria-label="页面精简" aria-describedby="status-text">
           <span class="thumb"></span>
         </button>
       </div>
-      <p class="status" id="status-text">已开启：按下方组件开关净化信息流。</p>
+      <p class="status" id="status-text" role="status">已开启：下方开关控制各页面元素的隐藏。</p>
+      <button id="default-layout" class="layout-defaults" type="button">恢复默认布局：显示侧栏，隐藏其他组件</button>
 
       <section class="card" id="components">
         <div class="card-head">
@@ -43,7 +44,7 @@
 
       <div id="feature-groups"></div>
 
-      <p class="hint">小红书页面按 <kbd>/</kbd> 进入纯净搜索，按 <kbd>Esc</kbd> 返回。</p>
+      <p class="hint">小红书页面按 <kbd>/</kbd> 展开或收起原生搜索框，按 <kbd>Esc</kbd> 也可收起。</p>
       <p class="hint">切换即时生效，无需刷新页面；快捷键 <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd></p>
     </main>
 
